@@ -9,6 +9,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
     const s = { ...saved, mode: msg.mode || saved.mode };
     const issue = problem(s);
     reply({ mode: s.mode, ...(issue ? { error: issue } : { phrase: generate(s) }) });
-  });
+  }).catch(() => reply({ mode: msg.mode, error: 'Couldn’t make a suggestion. Try again.' }));
   return true; // reply is async
 });

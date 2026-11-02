@@ -182,27 +182,17 @@ $('batch').addEventListener('click', () => {
     copy.type = 'button';
     copy.className = 'link';
     copy.textContent = 'Copy';
-    copy.addEventListener('click', async () => {
-      await navigator.clipboard.writeText(code.textContent);
-      copy.textContent = 'Copied!';
-      setTimeout(() => { copy.textContent = 'Copy'; }, 1200);
-    });
+    copy.addEventListener('click', () => copyWithFeedback(copy, code.textContent));
     li.append(code, copy);
     return li;
   }));
   list.hidden = $('batch-copy').hidden = false;
 });
-$('batch-copy').addEventListener('click', async () => {
+$('batch-copy').addEventListener('click', () => {
   const all = [...$('batch-list').querySelectorAll('code')].map((c) => c.textContent).join('\n');
-  await navigator.clipboard.writeText(all);
-  $('batch-copy').textContent = 'Copied!';
-  setTimeout(() => { $('batch-copy').textContent = 'Copy all'; }, 1200);
+  copyWithFeedback($('batch-copy'), all);
 });
-$('copy').addEventListener('click', async () => {
-  await navigator.clipboard.writeText($('phrase').textContent);
-  $('copy').textContent = 'Copied!';
-  setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
-});
+$('copy').addEventListener('click', () => copyWithFeedback($('copy'), $('phrase').textContent));
 
 document.querySelector('main').addEventListener('input', (e) => {
   if (!e.target.closest('#preset-form, #field-helper, .batch-row')) render();

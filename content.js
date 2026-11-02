@@ -4,15 +4,17 @@
 (() => {
   const NEW_HINT = /new|create|choose|confirm|repeat|retype|re-?enter|again|verify|sign.?up|register/i;
   const CURRENT_HINT = /current|old|existing/i;
-  const PAGE_HINT = /sign.?up|register|join|create|reset|change/i;
+  // Only at the start of a path part, so "/exchange/login" doesn't count as "change".
+  const PAGE_HINT = /(^|[/_.-])(sign.?up|register|join(?!t)|create|reset|change)/i;
 
   let enabled = true;
   let field = null; // the input the card is showing for
   let phrase = '';
   let mode = null; // null until the first suggestion, which uses the saved mode
+  let request = 0; // replies to older requests are ignored
   const dismissed = new WeakSet();
 
-  chrome.storage.local.get('fieldHelper').then(({ fieldHelper }) => { enabled = fieldHelper !== false; });
+  chrome.storage.local.get('fieldHelper').then(({ fieldHelper }) => { enabled = fieldHelper !== false; }, () => {});
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local' || !changes.fieldHelper) return;
     enabled = changes.fieldHelper.newValue !== false;
@@ -36,6 +38,17 @@
     if (isCurrentPassword(el)) return false;
     // A lone password box is usually a login form, unless the page or field says otherwise.
     return NEW_HINT.test(describe(el)) || passwordFields(el).length >= 2 || PAGE_HINT.test(location.pathname);
+  }
+
+  // The fields to fill along with the focused one: the next password field (its
+  // "confirm" partner) and earlier fields that clearly ask for a new password.
+  // Fields without labels before it may be a current password, so they're left alone.
+  function fillTargets(el) {
+    const others = passwordFields(el).filter((f) => f !== el && !isCurrentPassword(f));
+    const after = (f) => el.compareDocumentPosition(f) & Node.DOCUMENT_POSITION_FOLLOWING;
+    const clearlyNew = (f) => (f.autocomplete || '').toLowerCase().includes('new-password') || NEW_HINT.test(describe(f));
+    const next = others.find(after);
+    return [el, ...others.filter((f) => !after(f) && clearlyNew(f)), ...(next ? [next] : [])];
   }
 
   // ---- The card, kept in a closed shadow root so page styles and scripts stay out ----
@@ -81,8 +94,10 @@
   root.addEventListener('mousedown', (e) => e.preventDefault());
 
   async function suggest() {
+    const id = ++request;
     try {
       const res = await chrome.runtime.sendMessage({ type: 'passphrase', mode });
+      if (id !== request) return;
       mode = res.mode;
       phrase = res.phrase || '';
       const password = mode === 'password';
@@ -117,6 +132,7 @@
   }
 
   function hide() {
+    request++;
     field = null;
     phrase = '';
     host.remove();
@@ -131,9 +147,7 @@
 
   $('.use').addEventListener('click', async () => {
     if (!field || !phrase) return;
-    // Fill this field and its "confirm password" partners, but never the current password.
-    const targets = new Set([field, ...passwordFields(field).filter((el) => !isCurrentPassword(el))]);
-    for (const el of targets) fill(el, phrase);
+    for (const el of fillTargets(field)) fill(el, phrase);
     let copied = true;
     try { await navigator.clipboard.writeText(phrase); } catch (_) { copied = false; }
     $('.title').hidden = $('.row').hidden = $('.swap').hidden = true;

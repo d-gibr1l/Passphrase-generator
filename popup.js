@@ -70,11 +70,7 @@ function save() {
 }
 
 $('regen').addEventListener('click', render);
-$('copy').addEventListener('click', async () => {
-  await navigator.clipboard.writeText($('phrase').textContent);
-  $('copy').textContent = 'Copied!';
-  setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
-});
+$('copy').addEventListener('click', () => copyWithFeedback($('copy'), $('phrase').textContent));
 $('customize').addEventListener('click', () => {
   if (globalThis.chrome?.runtime?.openOptionsPage) chrome.runtime.openOptionsPage();
   else window.open('options.html');

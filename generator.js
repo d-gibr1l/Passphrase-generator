@@ -29,13 +29,19 @@ function parseWords(text) {
 
 // Words allowed by the source, length range and exclude list.
 // Hyphens don't count toward length, so "t-shirt" is 6 letters.
+// Cached, since one render or batch asks for the same pool many times.
+let poolCache = { key: '', pool: [] };
 function wordPool(s) {
+  const key = JSON.stringify([s.source, s.source === 'custom' ? s.customWords : '', s.exclude, s.minLen, s.maxLen]);
+  if (poolCache.key === key) return poolCache.pool;
   const base = s.source === 'custom' ? parseWords(s.customWords) : WORDLIST;
   const excluded = new Set(parseWords(s.exclude));
-  return base.filter((w) => {
+  const pool = base.filter((w) => {
     const n = w.replace(/-/g, '').length;
     return n >= s.minLen && n <= s.maxLen && !excluded.has(w);
   });
+  poolCache = { key, pool };
+  return pool;
 }
 
 function symbolChars(s) {
@@ -207,13 +213,15 @@ function generatePassword(s) {
   let left = s.pwLength;
   const take = classes.map(({ chars, min }, i) => {
     let r = randomFraction();
-    let c = min;
-    for (; c < left; c++) {
-      r -= 2 ** (log2Choose(left, c) + log2Fill(chars.length, c, s.pwNoRepeat) + counts[i + 1][left - c] - counts[i][left]);
-      if (r < 0) break;
+    let pick = min;
+    for (let c = min; c <= left; c++) {
+      const p = 2 ** (log2Choose(left, c) + log2Fill(chars.length, c, s.pwNoRepeat) + counts[i + 1][left - c] - counts[i][left]);
+      if (p > 0) pick = c; // if rounding leaves r just above 0, fall back to the last possible count
+      r -= p;
+      if (r < 0 && p > 0) break;
     }
-    left -= c;
-    return c;
+    left -= pick;
+    return pick;
   });
   // Pick the characters, then shuffle which position gets which kind.
   const picks = classes.map(({ chars }, i) => (s.pwNoRepeat
@@ -238,8 +246,12 @@ function generate(s) {
 // Entropy assumes an attacker knows the wordlist and settings.
 function entropyBits(s) {
   if (s.mode === 'password') return passwordBits(s);
-  let bits = s.count * Math.log2(wordPool(s).length);
-  if (s.caps === 'random') bits += s.count;
+  const pool = wordPool(s);
+  // Random caps doubles the choices only for words whose first letter has a capital.
+  const choices = s.caps === 'random'
+    ? pool.reduce((n, w) => n + (w[0].toUpperCase() === w[0] ? 1 : 2), 0)
+    : pool.length;
+  let bits = s.count * Math.log2(choices);
   if (s.digits > 0) bits += s.digits * Math.log2(10) + placementBits(s, s.digits);
   if (s.symbols > 0) bits += s.symbols * Math.log2(symbolChars(s).length) + placementBits(s, s.symbols);
   return bits;
@@ -301,6 +313,16 @@ async function loadSettings() {
 async function loadPresets() {
   const { presets } = await store.get(['presets']);
   return Array.isArray(presets) ? presets.map((p) => ({ name: p.name, settings: migrate(p.settings) })) : [];
+}
+
+// Copies text and briefly shows how it went on the button.
+async function copyWithFeedback(button, text) {
+  button.dataset.label ??= button.textContent;
+  let ok = true;
+  try { await navigator.clipboard.writeText(text); } catch (_) { ok = false; }
+  button.textContent = ok ? 'Copied!' : 'Copy failed';
+  clearTimeout(button.resetTimer);
+  button.resetTimer = setTimeout(() => { button.textContent = button.dataset.label; }, 1200);
 }
 
 // Puts a passphrase or password and its strength into a page that has #phrase, #bits and #bar-fill.
