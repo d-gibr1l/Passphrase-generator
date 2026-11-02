@@ -9,6 +9,7 @@
   let enabled = true;
   let field = null; // the input the card is showing for
   let phrase = '';
+  let mode = null; // null until the first suggestion, which uses the saved mode
   const dismissed = new WeakSet();
 
   chrome.storage.local.get('fieldHelper').then(({ fieldHelper }) => { enabled = fieldHelper !== false; });
@@ -60,11 +61,13 @@
       button.use { flex: 1; background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
       button:disabled { opacity: .5; cursor: default; }
       .done { color: var(--muted); }
+      .swap { display: block; margin-top: 6px; padding: 0; border: 0; background: none; color: var(--accent); font-size: 12px; }
       [hidden] { display: none !important; }
     </style>
     <div class="card" role="dialog" aria-label="Suggested passphrase">
       <div class="title">Use a strong passphrase?</div>
       <div class="phrase"></div>
+      <button class="swap" type="button"></button>
       <div class="row">
         <button class="use" type="button">Use passphrase</button>
         <button class="new" type="button" title="Suggest another">↻</button>
@@ -79,8 +82,13 @@
 
   async function suggest() {
     try {
-      const res = await chrome.runtime.sendMessage({ type: 'passphrase' });
+      const res = await chrome.runtime.sendMessage({ type: 'passphrase', mode });
+      mode = res.mode;
       phrase = res.phrase || '';
+      const password = mode === 'password';
+      $('.title').textContent = password ? 'Use a strong password?' : 'Use a strong passphrase?';
+      $('.use').textContent = password ? 'Use password' : 'Use passphrase';
+      $('.swap').textContent = password ? 'Switch to passphrase' : 'Switch to password';
       $('.phrase').textContent = res.error || phrase;
       $('.phrase').classList.toggle('error', !phrase);
       $('.use').disabled = !phrase;
@@ -100,7 +108,8 @@
 
   function show(el) {
     field = el;
-    $('.title').hidden = $('.row').hidden = false;
+    mode = null;
+    $('.title').hidden = $('.row').hidden = $('.swap').hidden = false;
     $('.done').hidden = true;
     if (!host.isConnected) document.documentElement.append(host);
     place();
@@ -127,7 +136,7 @@
     for (const el of targets) fill(el, phrase);
     let copied = true;
     try { await navigator.clipboard.writeText(phrase); } catch (_) { copied = false; }
-    $('.title').hidden = $('.row').hidden = true;
+    $('.title').hidden = $('.row').hidden = $('.swap').hidden = true;
     $('.done').hidden = false;
     $('.done').textContent = copied
       ? 'Filled in and copied to your clipboard. Save it somewhere safe.'
@@ -137,6 +146,7 @@
     setTimeout(() => { if (field === done) hide(); }, 3000);
   });
   $('.new').addEventListener('click', suggest);
+  $('.swap').addEventListener('click', () => { mode = mode === 'password' ? 'passphrase' : 'password'; suggest(); });
   $('.close').addEventListener('click', () => { dismissed.add(field); hide(); });
 
   function consider(el) {

@@ -4,9 +4,11 @@ importScripts('wordlist.js', 'generator.js');
 
 chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
   if (msg?.type !== 'passphrase') return false;
-  loadSettings().then((s) => {
+  loadSettings().then((saved) => {
+    // The card on a page can ask for the other mode without changing the saved one.
+    const s = { ...saved, mode: msg.mode || saved.mode };
     const issue = problem(s);
-    reply(issue ? { error: issue } : { phrase: generate(s) });
+    reply({ mode: s.mode, ...(issue ? { error: issue } : { phrase: generate(s) }) });
   });
   return true; // reply is async
 });

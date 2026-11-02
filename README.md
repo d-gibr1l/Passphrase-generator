@@ -1,8 +1,9 @@
 # Passphrase Generator
 
 A Chrome extension that creates strong, memorable passphrases such as
-`gents3-limelight-stucco1-machinist8-hamstring-support`. Everything runs in your
-browser: nothing is sent anywhere.
+`gents3-limelight-stucco1-machinist8-hamstring-support`, or regular random
+passwords such as `6mCGo+8_R-zPGgE2lP?=`. Everything runs in your browser:
+nothing is sent anywhere.
 
 ![Popup screenshot](screenshot.png)
 
@@ -11,11 +12,15 @@ browser: nothing is sent anywhere.
 ### Popup
 Click the toolbar icon to get a passphrase straight away.
 
+- The **Passphrase / Password** switch at the top changes what you get, and the
+  choice is remembered.
 - **Copy** copies it and **New** makes another.
 - A strength meter shows how hard the passphrase is to guess, in bits.
-- Quick options: number of words (3–12), separator (hyphen, space, period,
-  underscore, none or your own), and capitalization (lowercase, First Letter,
+- Quick options for passphrases: number of words (3–12), separator (hyphen, space,
+  period, underscore, none or your own), and capitalization (lowercase, First Letter,
   ALL CAPS or random words).
+- Quick options for passwords: length (4–128) and which characters to use
+  (A–Z, a–z, 0–9, symbols).
 - A **Preset** picker appears once you've saved a preset.
 - **More customization ↗** opens the full settings page.
 
@@ -25,14 +30,20 @@ you click **Save**.
 
 | Section | What you can change |
 | --- | --- |
+| Type | Passphrase or password |
+| Password | Length (4–128); uppercase, lowercase, numbers, symbols (you choose which) and your own characters, each with a minimum count; leaving out similar characters (`i I l L 1 \| o O 0`), ambiguous symbols (`{ } [ ] ( ) / \ ' " ~ , ; : . < >`), repeats, or any characters you list; and a separator every few characters |
 | Basics | Words, separator and capitalization |
 | Numbers & symbols | 0–8 digits, 0–5 symbols, which symbols to use, and where they go: spread out after different words (default), together after a random word, or together at the end |
 | Words | The EFF list or your own words, a word length range, and words to never use |
 | On websites | Turn the new-password card on or off (saves right away) |
 | Presets | Save the current settings under a name, then load, overwrite or delete presets |
 
-If a combination can't work, for example fewer than 2 words left after filtering,
-the preview explains why and **Save** stays off until you fix it.
+Under the preview, **Make several at once** creates up to 50 passphrases or
+passwords with the current settings, each with its own Copy button, plus **Copy all**.
+
+If a combination can't work, for example fewer than 2 words left after filtering or
+password minimums that add up to more than the length, the preview explains why and
+**Save** stays off until you fix it.
 
 ### On websites
 When you click into a **new password** field, for example on a sign-up or
@@ -44,7 +55,10 @@ change-password form, a small card appears under it:
 - Log-in fields and "current password" fields are left alone.
 - If you start typing your own password, the card goes away.
 
-Passphrases made here use your saved settings.
+- **Switch to password** (or **Switch to passphrase**) changes the suggestion for that
+  card only. Your saved choice stays the same.
+
+Suggestions here use your saved settings.
 
 ## Install
 
@@ -70,6 +84,11 @@ which word list and which settings. It counts only the randomness, never the len
 - Random capitalization adds 1 bit per word. The other capitalization styles add
   nothing, because they're predictable.
 - A small custom word list or tight filters lower the strength, and the meter shows it.
+- For passwords, each character adds about 6.2 bits with the default settings, since
+  there are 75 characters to pick from. The meter counts exactly how many passwords
+  meet your minimums and exclusions, and every one of them is equally likely to be
+  picked. A 20-character password with the defaults is about 124 bits. Separators
+  add nothing.
 
 | Bits | Rating |
 | --- | --- |
@@ -79,7 +98,7 @@ which word list and which settings. It counts only the randomness, never the len
 | 80 or more | Very strong |
 
 Randomness comes from `crypto.getRandomValues` with rejection sampling, so every
-word, digit and symbol is equally likely.
+word, digit, symbol and character is equally likely.
 
 ## Privacy and permissions
 
@@ -101,7 +120,7 @@ word, digit and symbol is equally likely.
 | `popup.html` / `.css` / `.js` | The toolbar popup |
 | `options.html` / `.css` / `.js` | The settings page |
 | `content.js` | The new-password card on websites |
-| `background.js` | Creates passphrases for `content.js`, so web pages don't load the word list |
+| `background.js` | Creates passphrases and passwords for `content.js`, so web pages don't load the word list |
 | `icons/` | Toolbar and store icons |
 
 There's no build step. Edit the files, then reload the extension.

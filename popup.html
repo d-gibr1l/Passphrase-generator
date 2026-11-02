@@ -5,49 +5,60 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
+  <div class="switch" role="radiogroup" aria-label="What to generate">
+    <button type="button" role="radio" data-mode="passphrase">Passphrase</button>
+    <button type="button" role="radio" data-mode="password">Password</button>
+  </div>
   <output id="phrase" aria-live="polite"></output>
   <div class="actions">
+    <div id="strength"><div class="bar"><span id="bar-fill"></span></div><span id="bits"></span></div>
+    <button id="regen" class="icon" title="Generate another" aria-label="Generate another">↻</button>
     <button id="copy" class="primary">Copy</button>
-    <button id="regen" title="Generate another">New</button>
   </div>
-  <div id="strength"><div class="bar"><span id="bar-fill"></span></div><span id="bits"></span></div>
 
   <fieldset>
     <label id="preset-row" hidden>Preset
       <select id="preset"></select>
     </label>
-    <label>Words <strong id="count-val"></strong>
-      <input type="range" id="count" min="3" max="12">
-    </label>
-    <label>Separator
-      <span class="pair">
-        <input type="text" id="custom-sep" maxlength="5" placeholder="e.g. +" aria-label="Custom separator" hidden>
-        <select id="sep">
+    <div id="passphrase-opts" class="opts">
+      <label>Words <strong id="count-val"></strong>
+        <input type="range" id="count" min="3" max="12">
+      </label>
+      <div class="pair">
+        <select id="sep" aria-label="Separator" title="Separator">
           <option value="-">Hyphen (-)</option>
           <option value=" ">Space</option>
           <option value=".">Period (.)</option>
           <option value="_">Underscore (_)</option>
-          <option value="">None</option>
+          <option value="">No separator</option>
           <option value="custom">Custom…</option>
         </select>
-      </span>
-    </label>
-    <label>Capitalization
-      <select id="caps">
-        <option value="none">lowercase</option>
-        <option value="first">First Letter</option>
-        <option value="upper">ALL CAPS</option>
-        <option value="random">Random words</option>
-      </select>
-    </label>
+        <input type="text" id="custom-sep" maxlength="5" placeholder="e.g. +" aria-label="Custom separator" hidden>
+        <select id="caps" aria-label="Capitalization" title="Capitalization">
+          <option value="none">lowercase</option>
+          <option value="first">First Letter</option>
+          <option value="upper">ALL CAPS</option>
+          <option value="random">Random caps</option>
+        </select>
+      </div>
+    </div>
+    <div id="password-opts" class="opts">
+      <label>Length <strong id="pw-length-val"></strong>
+        <input type="range" id="pw-length" min="4" max="128">
+      </label>
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="pw-upper"> A–Z</label>
+        <label class="check"><input type="checkbox" id="pw-lower"> a–z</label>
+        <label class="check"><input type="checkbox" id="pw-digits"> 0–9</label>
+        <label class="check"><input type="checkbox" id="pw-symbols"> !@#</label>
+      </div>
+    </div>
   </fieldset>
 
   <div class="more">
-    <p class="hint" id="extras"></p>
-    <button id="customize" type="button">More customization ↗</button>
+    <span class="hint" id="extras"></span>
+    <button id="customize" type="button" class="link">More options ↗</button>
   </div>
-
-  <p class="note">Generated locally with <code>crypto.getRandomValues</code>. Nothing leaves your browser.</p>
   <script src="wordlist.js"></script>
   <script src="generator.js"></script>
   <script src="popup.js"></script>

@@ -54,3 +54,22 @@ footer { position: fixed; left: 0; right: 0; bottom: 0; display: flex; align-ite
 #status { flex: 1; font-size: 13px; color: var(--muted); }
 #status.dirty { color: var(--fg); font-weight: 500; }
 .toggle { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+h3 { font-size: 14px; margin: 18px 0 8px; }
+.kinds { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.kinds th { text-align: left; font-weight: 500; color: var(--muted); font-size: 13px; padding: 0 0 6px; }
+.kinds td { padding: 6px 0; border-top: 1px solid var(--line); vertical-align: middle; }
+.kinds td:last-child { width: 90px; }
+.kinds label, .excludes label, .with-text { display: flex; align-items: center; gap: 8px; }
+.with-text input[type=text] { flex: 1; min-width: 0; }
+.kinds .with-text label { flex: none; width: 110px; }
+.excludes { display: grid; gap: 8px; }
+.excludes .mono { font-size: 12px; }
+.sep-row input[type=text] { flex: none; width: 48px; }
+.batch { border-top: 0; padding: 0 0 16px; }
+.batch-row { margin-top: 0; font-size: 13px; color: var(--muted); }
+.batch-row label { flex: 1; text-align: right; }
+#batch-list { margin: 10px 0 0; padding-left: 28px; }
+#batch-list li { padding: 3px 0; }
+#batch-list code { font-size: 13px; word-break: break-all; margin-right: 6px; }
+input:disabled { opacity: .5; }
+[hidden] { display: none !important; }

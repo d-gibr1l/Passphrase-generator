@@ -9,8 +9,8 @@
 <body>
   <main>
     <header>
-      <h1>Customize your passphrases</h1>
-      <p class="muted">Changes show up in the preview right away. Click <strong>Save</strong> to use them in the popup.</p>
+      <h1>Customize your passphrases and passwords</h1>
+      <p class="muted">Changes show up in the preview right away. Click <strong>Save</strong> to use them in the popup. Everything is generated in your browser with <code>crypto.getRandomValues</code>, and nothing is sent anywhere.</p>
     </header>
 
     <section class="preview" aria-label="Preview">
@@ -22,7 +22,86 @@
       </div>
     </section>
 
+    <section class="batch">
+      <div class="row batch-row">
+        <label for="batch-count">Make several at once</label>
+        <input type="number" id="batch-count" min="2" max="50" value="5">
+        <button id="batch" type="button">Generate</button>
+        <button id="batch-copy" type="button" hidden>Copy all</button>
+      </div>
+      <ol id="batch-list" hidden></ol>
+    </section>
+
     <section>
+      <h2>Type</h2>
+      <div class="field">
+        <span class="label">Generate</span>
+        <div class="control radios">
+          <label><input type="radio" name="mode" value="passphrase"> Passphrase (words)</label>
+          <label><input type="radio" name="mode" value="password"> Password (random characters)</label>
+        </div>
+      </div>
+    </section>
+
+    <section data-mode="password">
+      <h2>Password</h2>
+      <div class="field">
+        <label for="pw-length">Length</label>
+        <div class="control">
+          <input type="range" id="pw-length-range" min="4" max="128" aria-label="Length slider">
+          <input type="number" id="pw-length" data-key="pwLength" min="4" max="128">
+        </div>
+      </div>
+
+      <table class="kinds">
+        <thead><tr><th>Include</th><th>Minimum</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><label><input type="checkbox" data-key="pwUpper"> Uppercase <span class="muted mono">A–Z</span></label></td>
+            <td><input type="number" data-key="pwMinUpper" min="0" max="128" aria-label="Minimum uppercase"></td>
+          </tr>
+          <tr>
+            <td><label><input type="checkbox" data-key="pwLower"> Lowercase <span class="muted mono">a–z</span></label></td>
+            <td><input type="number" data-key="pwMinLower" min="0" max="128" aria-label="Minimum lowercase"></td>
+          </tr>
+          <tr>
+            <td><label><input type="checkbox" data-key="pwDigits"> Numbers <span class="muted mono">0–9</span></label></td>
+            <td><input type="number" data-key="pwMinDigits" min="0" max="128" aria-label="Minimum numbers"></td>
+          </tr>
+          <tr>
+            <td class="with-text">
+              <label><input type="checkbox" data-key="pwSymbols"> Symbols</label>
+              <input type="text" data-key="pwSymbolSet" class="wide mono" spellcheck="false" aria-label="Symbols to use">
+            </td>
+            <td><input type="number" data-key="pwMinSymbols" min="0" max="128" aria-label="Minimum symbols"></td>
+          </tr>
+          <tr>
+            <td class="with-text">
+              <label><input type="checkbox" data-key="pwCustom"> Custom</label>
+              <input type="text" data-key="pwCustomSet" class="wide mono" spellcheck="false" placeholder="Your own characters" aria-label="Custom characters">
+            </td>
+            <td><input type="number" data-key="pwMinCustom" min="0" max="128" aria-label="Minimum custom characters"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Exclude</h3>
+      <div class="excludes">
+        <label><input type="checkbox" data-key="pwNoSimilar"> Similar <span class="muted mono">i I l L 1 | o O 0</span></label>
+        <label><input type="checkbox" data-key="pwNoAmbiguousSymbols"> Ambiguous <span class="muted mono">{ } [ ] ( ) / \ ' " ` ~ , ; : . &lt; &gt;</span></label>
+        <label><input type="checkbox" data-key="pwNoRepeat"> Repeating <span class="muted">(use each character at most once)</span></label>
+        <label class="with-text"><input type="checkbox" data-key="pwExcludeOn"> Custom
+          <input type="text" data-key="pwExcludeSet" class="wide mono" spellcheck="false" placeholder="Characters to leave out" aria-label="Characters to leave out"></label>
+      </div>
+
+      <h3>Separator</h3>
+      <label class="with-text sep-row"><input type="checkbox" data-key="pwSepOn"> Add
+        <input type="text" data-key="pwSep" maxlength="3" aria-label="Separator">
+        every <input type="number" data-key="pwSepEvery" min="1" max="64" aria-label="Characters between separators"> characters</label>
+      <p class="hint">Separators are added on top of the length and don't add strength. The separator never appears inside the password.</p>
+    </section>
+
+    <section data-mode="passphrase">
       <h2>Basics</h2>
       <div class="field">
         <label for="count">Words</label>
@@ -55,7 +134,7 @@
       </div>
     </section>
 
-    <section>
+    <section data-mode="passphrase">
       <h2>Numbers &amp; symbols</h2>
       <div class="field">
         <label for="digits">Digits</label>
@@ -81,7 +160,7 @@
       </div>
     </section>
 
-    <section>
+    <section data-mode="passphrase">
       <h2>Words</h2>
       <div class="field">
         <span class="label">Word list</span>
