@@ -1,60 +1,49 @@
 'use strict';
 
-const DEFAULTS = { count: 6, sep: '-', caps: false, digit: false };
 const $ = (id) => document.getElementById(id);
+let settings = { ...DEFAULTS };
+let presets = [];
 
-// Uniform random integer in [0, max) using rejection sampling (no modulo bias).
-function randomInt(max) {
-  const limit = Math.floor(0x100000000 / max) * max;
-  const buf = new Uint32Array(1);
-  do { crypto.getRandomValues(buf); } while (buf[0] >= limit);
-  return buf[0] % max;
+// The popup edits only these; everything else comes from the customization page.
+function readQuick() {
+  return { count: Number($('count').value), sep: $('sep').value, customSep: $('custom-sep').value, caps: $('caps').value };
 }
 
-function generate({ count, sep, caps, digit }) {
-  const words = Array.from({ length: count }, () => WORDLIST[randomInt(WORDLIST.length)]);
-  if (caps) words.forEach((w, i) => { words[i] = w[0].toUpperCase() + w.slice(1); });
-  if (digit) { const i = randomInt(count); words[i] += randomInt(10); }
-  return words.join(sep);
+function applyQuick(s) {
+  $('count').value = s.count; $('sep').value = s.sep; $('custom-sep').value = s.customSep; $('caps').value = s.caps;
 }
 
-// Entropy assumes an attacker knows the wordlist and settings.
-function entropyBits({ count, digit }) {
-  let bits = count * Math.log2(WORDLIST.length);
-  if (digit) bits += Math.log2(10 * count);
-  return bits;
+// One line listing the settings that are only visible on the customization page.
+function extrasSummary(s) {
+  const parts = [];
+  if (s.digits) parts.push(`${s.digits} digit${s.digits > 1 ? 's' : ''}`);
+  if (s.symbols) parts.push(`${s.symbols} symbol${s.symbols > 1 ? 's' : ''}`);
+  if (s.source === 'custom') parts.push('your own words');
+  if (s.minLen !== DEFAULTS.minLen || s.maxLen !== DEFAULTS.maxLen) parts.push(`${s.minLen}–${s.maxLen} letters`);
+  if (parseWords(s.exclude).length) parts.push(`${parseWords(s.exclude).length} excluded`);
+  return parts.length ? `Also using: ${parts.join(', ')}` : '';
 }
 
-function strength(bits) {
-  if (bits < 50) return ['Weak', '#d93025', 0.25];
-  if (bits < 65) return ['Fair', '#f29900', 0.5];
-  if (bits < 80) return ['Strong', '#1e8e3e', 0.75];
-  return ['Very strong', '#137333', 1];
-}
-
-function readSettings() {
-  return { count: Number($('count').value), sep: $('sep').value, caps: $('caps').checked, digit: $('digit').checked };
+function renderPresets() {
+  $('preset-row').hidden = !presets.length;
+  const match = presets.findIndex((p) => settingsKey(p.settings) === settingsKey(settings));
+  $('preset').replaceChildren(
+    new Option('Custom', '', false, match < 0),
+    ...presets.map((p, i) => new Option(p.name, i, false, i === match)),
+  );
 }
 
 function render() {
-  const s = readSettings();
-  $('count-val').textContent = s.count;
-  $('phrase').textContent = generate(s);
-  const bits = entropyBits(s);
-  const [label, color, frac] = strength(bits);
-  $('bits').textContent = `${label} · ${Math.round(bits)} bits`;
-  $('bar-fill').style.width = `${frac * 100}%`;
-  $('bar-fill').style.background = color;
+  $('count-val').textContent = settings.count;
+  $('custom-sep').hidden = settings.sep !== 'custom';
+  $('extras').textContent = extrasSummary(settings);
+  showResult(settings, $);
+  $('copy').disabled = Boolean(problem(settings));
+  renderPresets();
 }
 
 function save() {
-  try { chrome.storage?.local.set({ settings: readSettings() }); } catch (_) {}
-}
-
-async function load() {
-  let s = DEFAULTS;
-  try { s = { ...DEFAULTS, ...((await chrome.storage.local.get('settings')).settings || {}) }; } catch (_) {}
-  $('count').value = s.count; $('sep').value = s.sep; $('caps').checked = s.caps; $('digit').checked = s.digit;
+  store.set({ settings }).catch(() => {});
 }
 
 $('regen').addEventListener('click', render);
@@ -63,8 +52,26 @@ $('copy').addEventListener('click', async () => {
   $('copy').textContent = 'Copied!';
   setTimeout(() => { $('copy').textContent = 'Copy'; }, 1200);
 });
-for (const id of ['count', 'sep', 'caps', 'digit']) {
-  $(id).addEventListener('input', () => { save(); render(); });
+$('customize').addEventListener('click', () => {
+  if (globalThis.chrome?.runtime?.openOptionsPage) chrome.runtime.openOptionsPage();
+  else window.open('options.html');
+});
+$('preset').addEventListener('input', () => {
+  const p = presets[$('preset').value];
+  if (!p) return;
+  settings = { ...p.settings };
+  applyQuick(settings);
+  save(); render();
+});
+for (const id of ['count', 'sep', 'custom-sep', 'caps']) {
+  $(id).addEventListener('input', () => {
+    settings = { ...settings, ...readQuick() };
+    save(); render();
+  });
 }
 
-load().then(render);
+(async () => {
+  try { [settings, presets] = await Promise.all([loadSettings(), loadPresets()]); } catch (_) {}
+  applyQuick(settings);
+  render();
+})();

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Passphrase Generator · Customize</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Customize your passphrases</h1>
+      <p class="muted">Changes show up in the preview right away. Click <strong>Save</strong> to use them in the popup.</p>
+    </header>
+
+    <section class="preview" aria-label="Preview">
+      <output id="phrase" aria-live="polite"></output>
+      <div class="row">
+        <div id="strength"><div class="bar"><span id="bar-fill"></span></div><span id="bits"></span></div>
+        <button id="regen" type="button">New</button>
+        <button id="copy" type="button">Copy</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Basics</h2>
+      <div class="field">
+        <label for="count">Words</label>
+        <div class="control"><input type="range" id="count" min="3" max="12"><strong id="count-val"></strong></div>
+      </div>
+      <div class="field">
+        <label for="sep">Separator</label>
+        <div class="control">
+          <select id="sep">
+            <option value="-">Hyphen (-)</option>
+            <option value=" ">Space</option>
+            <option value=".">Period (.)</option>
+            <option value="_">Underscore (_)</option>
+            <option value="">None</option>
+            <option value="custom">Custom…</option>
+          </select>
+          <input type="text" id="custom-sep" maxlength="5" placeholder="e.g. +" aria-label="Custom separator">
+        </div>
+      </div>
+      <div class="field">
+        <label for="caps">Capitalization</label>
+        <div class="control">
+          <select id="caps">
+            <option value="none">lowercase</option>
+            <option value="first">First Letter</option>
+            <option value="upper">ALL CAPS</option>
+            <option value="random">Random words</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Numbers &amp; symbols</h2>
+      <div class="field">
+        <label for="digits">Digits</label>
+        <div class="control"><input type="number" id="digits" min="0" max="8"></div>
+      </div>
+      <div class="field">
+        <label for="symbols">Symbols</label>
+        <div class="control"><input type="number" id="symbols" min="0" max="5"></div>
+      </div>
+      <div class="field">
+        <label for="symbol-set">Symbols to use</label>
+        <div class="control"><input type="text" id="symbol-set" class="wide mono" spellcheck="false"></div>
+      </div>
+      <div class="field">
+        <label for="place">Put them</label>
+        <div class="control">
+          <select id="place">
+            <option value="spread">Spread out, after different words</option>
+            <option value="word">Together, after a random word</option>
+            <option value="end">Together, at the end</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Words</h2>
+      <div class="field">
+        <span class="label">Word list</span>
+        <div class="control radios">
+          <label><input type="radio" name="source" value="eff"> EFF list (7,776 words)</label>
+          <label><input type="radio" name="source" value="custom"> My own words</label>
+        </div>
+      </div>
+      <div class="field" id="custom-words-field">
+        <label for="custom-words">My words</label>
+        <div class="control column">
+          <textarea id="custom-words" rows="6" spellcheck="false" placeholder="Paste words separated by spaces, commas or new lines"></textarea>
+          <span class="hint" id="custom-count"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="min-len">Word length</label>
+        <div class="control">
+          <input type="number" id="min-len" min="1" max="20" aria-label="Minimum letters">
+          <span class="muted">to</span>
+          <input type="number" id="max-len" min="1" max="20" aria-label="Maximum letters">
+          <span class="muted">letters</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="exclude">Never use</label>
+        <div class="control column">
+          <textarea id="exclude" rows="3" spellcheck="false" placeholder="Words to leave out"></textarea>
+        </div>
+      </div>
+      <p class="hint" id="pool"></p>
+    </section>
+
+    <section>
+      <h2>On websites</h2>
+      <label class="toggle"><input type="checkbox" id="field-helper">
+        Offer a passphrase when I click into a new password field
+      </label>
+      <p class="hint">Shows a small card under sign-up and change-password fields. Clicking <strong>Use passphrase</strong> fills the password and confirm fields and copies the passphrase. This setting saves right away.</p>
+    </section>
+
+    <section>
+      <h2>Presets</h2>
+      <p class="muted">Save the current settings under a name. You can switch between presets here or in the popup.</p>
+      <form id="preset-form" class="control">
+        <input type="text" id="preset-name" class="wide" maxlength="40" placeholder="Preset name, e.g. Work" required>
+        <button type="submit">Save as preset</button>
+      </form>
+      <ul id="preset-list"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <span id="status" aria-live="polite"></span>
+    <button id="reset" type="button">Reset to defaults</button>
+    <button id="discard" type="button">Discard changes</button>
+    <button id="save" type="button" class="primary">Save</button>
+  </footer>
+
+  <script src="wordlist.js"></script>
+  <script src="generator.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

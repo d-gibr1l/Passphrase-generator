@@ -13,23 +13,43 @@
   <div id="strength"><div class="bar"><span id="bar-fill"></span></div><span id="bits"></span></div>
 
   <fieldset>
+    <label id="preset-row" hidden>Preset
+      <select id="preset"></select>
+    </label>
     <label>Words <strong id="count-val"></strong>
       <input type="range" id="count" min="3" max="12">
     </label>
     <label>Separator
-      <select id="sep">
-        <option value="-">Hyphen (-)</option>
-        <option value=" ">Space</option>
-        <option value=".">Period (.)</option>
-        <option value="_">Underscore (_)</option>
-        <option value="">None</option>
+      <span class="pair">
+        <input type="text" id="custom-sep" maxlength="5" placeholder="e.g. +" aria-label="Custom separator" hidden>
+        <select id="sep">
+          <option value="-">Hyphen (-)</option>
+          <option value=" ">Space</option>
+          <option value=".">Period (.)</option>
+          <option value="_">Underscore (_)</option>
+          <option value="">None</option>
+          <option value="custom">Custom…</option>
+        </select>
+      </span>
+    </label>
+    <label>Capitalization
+      <select id="caps">
+        <option value="none">lowercase</option>
+        <option value="first">First Letter</option>
+        <option value="upper">ALL CAPS</option>
+        <option value="random">Random words</option>
       </select>
     </label>
-    <label class="check"><input type="checkbox" id="caps"> Capitalize words</label>
-    <label class="check"><input type="checkbox" id="digit"> Add a number</label>
   </fieldset>
+
+  <div class="more">
+    <p class="hint" id="extras"></p>
+    <button id="customize" type="button">More customization ↗</button>
+  </div>
+
   <p class="note">Generated locally with <code>crypto.getRandomValues</code>. Nothing leaves your browser.</p>
   <script src="wordlist.js"></script>
+  <script src="generator.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
