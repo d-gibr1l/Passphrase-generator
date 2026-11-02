@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <output id="phrase" aria-live="polite"></output>
+  <div class="actions">
+    <button id="copy" class="primary">Copy</button>
+    <button id="regen" title="Generate another">New</button>
+  </div>
+  <div id="strength"><div class="bar"><span id="bar-fill"></span></div><span id="bits"></span></div>
+
+  <fieldset>
+    <label>Words <strong id="count-val"></strong>
+      <input type="range" id="count" min="3" max="12">
+    </label>
+    <label>Separator
+      <select id="sep">
+        <option value="-">Hyphen (-)</option>
+        <option value=" ">Space</option>
+        <option value=".">Period (.)</option>
+        <option value="_">Underscore (_)</option>
+        <option value="">None</option>
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" id="caps"> Capitalize words</label>
+    <label class="check"><input type="checkbox" id="digit"> Add a number</label>
+  </fieldset>
+  <p class="note">Generated locally with <code>crypto.getRandomValues</code>. Nothing leaves your browser.</p>
+  <script src="wordlist.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
