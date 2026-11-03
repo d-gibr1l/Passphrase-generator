@@ -41,9 +41,12 @@ you click **Save**.
 Under the preview, **Make several at once** creates up to 50 passphrases or
 passwords with the current settings, each with its own Copy button, plus **Copy all**.
 
-If a combination can't work, for example fewer than 2 words left after filtering or
-password minimums that add up to more than the length, the preview explains why and
-**Save** stays off until you fix it.
+If a combination can't work, for example fewer than 2 words left after filtering, the
+preview explains why and **Save** stays off until you fix it.
+
+If you make a password shorter than its minimums add up to, the minimums are ignored
+for that length rather than blocking you. Each ticked kind still appears at least once
+when there's room. Your saved minimums come back as soon as the length fits them again.
 
 ### On websites
 When you click into a **new password** field, for example on a sign-up or

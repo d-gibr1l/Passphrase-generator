@@ -24,7 +24,8 @@ function extrasSummary(s) {
   if (s.mode === 'password') {
     const parts = [];
     const mins = ['Upper', 'Lower', 'Digits', 'Symbols'].filter((k) => s[`pw${k}`] && s[`pwMin${k}`] !== 1);
-    if (mins.length) parts.push('custom minimums');
+    if (minimumsIgnored(s)) parts.push('minimums ignored (too short for them)');
+    else if (mins.length) parts.push('custom minimums');
     if (s.pwCustom) parts.push('your own characters');
     if (s.pwNoSimilar) parts.push('no similar');
     if (s.pwNoAmbiguousSymbols) parts.push('no ambiguous');

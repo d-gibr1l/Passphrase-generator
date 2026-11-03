@@ -77,6 +77,7 @@ function render() {
   ]) {
     for (const key of inputs) keyed(key).disabled = !s[box];
   }
+  $('mins-note').hidden = !minimumsIgnored(s);
   $('batch-list').hidden = $('batch-copy').hidden = true;
   $('count-val').textContent = s.count;
   $('custom-sep').hidden = s.sep !== 'custom';

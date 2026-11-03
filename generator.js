@@ -130,11 +130,23 @@ function passwordClasses(s) {
   const excluded = new Set((s.pwNoSimilar ? SIMILAR : '') + (s.pwNoAmbiguousSymbols ? AMBIGUOUS_SYMBOLS : '')
     + (s.pwExcludeOn ? s.pwExcludeSet : '') + (s.pwSepOn ? s.pwSep : ''));
   const seen = new Set();
-  return PW_KINDS.filter((k) => s[`pw${k.key}`]).map((k) => {
+  const classes = PW_KINDS.filter((k) => s[`pw${k.key}`]).map((k) => {
     const chars = [...new Set(k.chars(s).replace(/\s/g, ''))].filter((c) => !excluded.has(c) && !seen.has(c));
     chars.forEach((c) => seen.add(c));
     return { label: k.label, chars, min: s[`pwMin${k.key}`] };
   });
+  // Too short for the saved minimums: ignore them, but still use each ticked kind
+  // once when there's room (kinds set to 0 stay optional).
+  if (minimumsIgnored(s)) {
+    const floor = classes.length <= s.pwLength ? 1 : 0;
+    for (const c of classes) c.min = Math.min(c.min, floor);
+  }
+  return classes;
+}
+
+// True when the ticked kinds' minimums add up to more than the length.
+function minimumsIgnored(s) {
+  return PW_KINDS.filter((k) => s[`pw${k.key}`]).reduce((sum, k) => sum + s[`pwMin${k.key}`], 0) > s.pwLength;
 }
 
 const LOG2_FACT = [0];
@@ -186,7 +198,6 @@ function passwordProblem(s) {
   if (!classes.length) return 'Pick at least one kind of character.';
   const empty = classes.find((c) => !c.chars.length);
   if (empty) return `No ${empty.label} left to use. Check the character sets and exclusions.`;
-  if (classes.reduce((sum, c) => sum + c.min, 0) > s.pwLength) return 'The minimums add up to more than the length.';
   if (s.pwSepOn && !s.pwSep) return 'Type a separator or untick "Add separator".';
   if (passwordPlan(s).counts[0][s.pwLength] === -Infinity) {
     return 'Not enough different characters to avoid repeats. Shorten the password or allow repeats.';
